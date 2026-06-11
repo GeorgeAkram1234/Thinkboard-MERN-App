@@ -1,16 +1,20 @@
 import express from "express";
+import dotenv from 'dotenv';
+import path from "path"
+import cors from 'cors'
+
+
 import notesRoutes from './routes/notesRoutes.js';
 import { connectDB } from "./config/db.js";
-import dotenv from 'dotenv';
 import ratelimiter from "./middleware/ratelimiter.js";
-import cors from 'cors'
 dotenv.config();
 
-// console.log(process.env.MONGO_URI);
 
 
 const app = express()
 const port = process.env.PORT || 5000
+
+const __dirname = path.resolve()
 
 
 connectDB().then(() => {
@@ -21,10 +25,12 @@ connectDB().then(() => {
 
 })
 
-app.use(cors(
-    { origin: "http://localhost:5173" }
-))
+if (process.env.NODE_ENV !== 'production') {
+    app.use(cors(
+        { origin: "http://localhost:5173" }
+    ))
 
+}
 //middleware
 app.use(express.json()) // parse json bodies
 
@@ -32,17 +38,14 @@ app.use(express.json()) // parse json bodies
 app.use(ratelimiter) // middleware for rate limiting
 
 
-// middlewares are best for auth check,rate limiting
-
-// app.use((req, res , next)=>{
-//     console.log(`request method is ${req.method} and request url is ${req.url}`);
-//     next()
-// })
-
-
 
 app.use('/api/notes/', notesRoutes)
 
+if (process.env.NODE_ENV === "production") {
 
+    app.use(express.static(path.join(__dirname, "../frontend/dist")))
 
-
+    app.get('*path', (req, res) => {
+        res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"))
+    })
+}
