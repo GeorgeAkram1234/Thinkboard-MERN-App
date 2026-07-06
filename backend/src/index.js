@@ -16,6 +16,8 @@ const port = process.env.PORT || 5000
 
 const __dirname = path.resolve()
 
+app.set("trust proxy", 1)
+
 
 connectDB().then(() => {
     app.listen(port, () => {
@@ -35,11 +37,7 @@ if (process.env.NODE_ENV !== 'production') {
 app.use(express.json()) // parse json bodies
 
 
-app.use(ratelimiter) // middleware for rate limiting
-
-
-
-app.use('/api/notes/', notesRoutes)
+app.use('/api/notes/', ratelimiter, notesRoutes) // rate limit API requests only
 
 if (process.env.NODE_ENV === "production") {
 
