@@ -25,7 +25,8 @@ const ratelimiter = async (req, res, next) => {
 
     } catch (error) {
         console.error("rate limit error", error);
-        next(error)
+        // If the rate limiter is unavailable, keep the API usable.
+        next()
     }
 
 }
